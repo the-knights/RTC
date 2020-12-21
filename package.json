@@ -1,7 +1,8 @@
 {
-  "name": "rtc-2077",
+  "name": "rtc",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://the-knights.github.io/RTC",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
