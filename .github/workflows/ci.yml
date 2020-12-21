@@ -1,4 +1,4 @@
-name: GitHub Actions Build and Deploy Demo
+name: RTC Build and Deploy
 on:
   push:
     branches:
@@ -18,10 +18,16 @@ jobs:
         # Set always-auth in npmrc
         always-auth: 14.x # optional, default is false
 
+    - uses: actions/cache@v2
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
     - name: Install and Build
       run: |
         npm install
         npm run build
+
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
