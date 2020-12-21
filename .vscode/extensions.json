@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "aaron-bond.better-comments", // 更丰富的注释
+    "streetsidesoftware.code-spell-checker", // 单词拼写校验，防止拼写错误
+    "jock.svg", // SVG 图片预览
+    "gruntfuggly.todo-tree", // TODO/FIXME 等注释标志
+    "lihuiwang.vue-alias-skip", // 别名路径跳转，默认 @ 为 src，路径配置可以看 vue.config.js 中的别名路径
+    "hediet.vscode-drawio", // 流程图
+  ]
+}

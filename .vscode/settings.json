@@ -1,0 +1,64 @@
+{
+  // todo-tree 相关配置
+  "todo-tree.general.tags": [
+    "TODO:", // 未完成
+    "FIXME:", // 待修复
+    "HACK:", // 写法待优化
+    "XXX:", // 实现方法待确认
+    "NOTE:", // 代码功能说明
+    "BUG:"
+  ],
+  "todo-tree.highlights.defaultHighlight": {
+    "gutterIcon": true
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO:": {
+      "foreground": "#fff",
+      "background": "#ffbd2a",
+      "iconColour": "#ffbd2a"
+    },
+    "FIXME:": {
+      "foreground": "#fff",
+      "background": "#f06292",
+      "icon": "flame",
+      "iconColour": "#f06292"
+    },
+    "HACK:": {
+      "foreground": "#fff",
+      "background": "#0096ff",
+      "icon": "heart",
+      "iconColour": "#0096ff"
+    },
+    "XXX:": {
+      "foreground": "#fff",
+      "background": "#e34c26",
+      "icon": "question",
+      "iconColour": "#e34c26"
+    },
+    "NOTE:": {
+      "foreground": "#fff",
+      "background": "#ca64ea",
+      "icon": "note",
+      "iconColour": "#ca64ea"
+    },
+    "BUG:": {
+      "foreground": "#fff",
+      "background": "#99b22b",
+      "icon": "bug",
+      "iconColour": "#99b22b"
+    }
+  },
+  // 别名路径配置，可以方便在项目中跳转（Win: Control + 单击、Mac: Command + 单击）
+  "alias-skip.mappings": {
+    "@": "/src", // 默认只有`@`映射，映射到`/src`，你可以添加更多映射，映射路径必须以`/`开头
+    "@config": "/config",
+    "@bigClass": "/src/renderer/bigClass"
+    // ...更多映射关系
+  },
+  // 拼写校验配置，以下单词不进行校验
+  "cSpell.words": [
+    "TTFB",
+    "endregion",
+    "errcode",
+  ],
+}
