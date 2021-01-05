@@ -14,16 +14,15 @@
     "strict": true, // 启用所有严格的类型检查选项
     "forceConsistentCasingInFileNames": true, // 禁止对同一文件使用大小写不一致的引用
     "module": "esnext", // 指定模块代码生成
-    "moduleResolution": "node", // 使用Node.js样式解析模块
+    "moduleResolution": "node", // 使用 Node.js 样式解析模块
     "isolatedModules": true, // 无条件地释放未解析文件的导入
     "resolveJsonModule": true, // 包含以.json扩展名导入的模块
     "noEmit": true, // 不发出输出（表示不编译代码，仅执行类型检查）
     "jsx": "react-jsx",
     "sourceMap": true, // 生成相应的.map文件
     "declaration": true, // 生成相应的.d.ts文件
-    // "noUnusedLocals": true, // 报告未使用的本地错误 —— React17 版本不引入 React 导致报错，先注释掉
     "noUnusedParameters": true, // 报告未使用参数的错误
-    "incremental": true, // 通过读取/写入以前的编译信息到磁盘上的文件来启用增量编译
+    "incremental": true // 通过读取/写入以前的编译信息到磁盘上的文件来启用增量编译
   },
   "include": [
     "src"

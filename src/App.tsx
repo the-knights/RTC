@@ -1,11 +1,13 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import logo from './logo.svg';
+import Camera from './view/Camera';
 
 function App() {
   return (
     <AppWrapper>
       <AppHeader>
+        <Camera />
         <Logo src={logo} alt="logo" />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
