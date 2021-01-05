@@ -31,8 +31,10 @@ class RTC extends events.EventEmitter {
   cameraDevicesList = null;
   audioContext = new AudioContext();
   stream?: MediaStream;
-  audioVolumeTimer?: number; // 音量回调定时器
+  audioVolumeTimer?: number = 0; // 音量回调定时器
   currentResolution?: MediaStreamConstraints;
+  mediaRecorder?: MediaRecorder;
+  recordedBlobs: Blob[] = [];
 
   // TODO: 初始化 rtc 基本信息（设备列表）
   async init() {
@@ -167,6 +169,79 @@ class RTC extends events.EventEmitter {
     console.log('removeVideoTrack()');
     this.stream?.removeTrack(this.stream.getVideoTracks()[0]);
   };
+
+  startRecord() {
+    const types = [
+      'video/webm',
+      'audio/webm',
+      'video/webm;codecs=vp8',
+      'video/webm;codecs=daala',
+      'video/webm;codecs=h264',
+      'audio/webm;codecs=opus',
+      'video/mpeg',
+    ];
+
+    for (const i in types) {
+      console.log(
+        'Is ' +
+          types[i] +
+          ' supported? ' +
+          (MediaRecorder.isTypeSupported(types[i]) ? 'Maybe!' : 'Nope :('),
+      );
+    }
+    // 媒体类型
+    const options: MediaRecorderOptions = {
+      mimeType: 'audio/webm;codecs=opus',
+    };
+    try {
+      // 初始化 MediaRecorder 对象,传入音频流及媒体类型
+      if (this.stream) {
+        this.mediaRecorder = new MediaRecorder(this.stream, options);
+
+        //录制停止事件回调
+        this.mediaRecorder.onstop = (event) => {
+          console.log('Recorder stopped: ', event);
+          console.log('Recorded Blobs: ', this.recordedBlobs);
+        };
+
+        //当数据有效时触发的事件,可以把数据存储到缓存区里
+        this.mediaRecorder.ondataavailable = (event) => {
+          console.log('handleDataAvailable', event);
+          //判断是否有数据
+          if (event.data && event.data.size > 0) {
+            //将数据记录起来
+            this.recordedBlobs?.push(event.data);
+          }
+        };
+
+        // 录制 10 秒
+        this.mediaRecorder.start(10);
+        console.log('MediaRecorder started', this.mediaRecorder);
+      }
+    } catch (e) {
+      console.error('MediaRecorder创建失败:', e);
+      return;
+    }
+  }
+
+  //停止录制
+  stopRecord() {
+    this.mediaRecorder?.stop();
+  }
+
+  //播放录制数据
+  playRecordAudio(el: HTMLAudioElement | null) {
+    if (el) {
+      // 生成 blob 文件,类型为 audio/webm
+      const blob = new Blob(this.recordedBlobs, { type: 'audio/webm' });
+
+      el.src = '';
+      // 根据 blob 文件生成播放器的数据源
+      el.src = window.URL.createObjectURL(blob);
+      // 播放声音
+      el.play();
+    }
+  }
 
   _handleVideoError(error: DOMException) {
     console.error('error: %o', error);

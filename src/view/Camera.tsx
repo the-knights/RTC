@@ -4,11 +4,16 @@ import rtc from '../lib/rtc';
 
 function Camera() {
   const cameraRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const screenshotsRef = useRef<HTMLCanvasElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream>();
 
   useEffect(() => {
     rtc.startAudioStream();
+
+    setTimeout(() => {
+      rtc.startRecord();
+    }, 3000);
 
     const constraints: MediaStreamConstraints = {
       audio: false,
@@ -57,6 +62,9 @@ function Camera() {
 
   function handleScreenshots() {
     const video = cameraRef.current;
+    const audioEl = audioRef.current;
+    rtc.stopRecord();
+    rtc.playRecordAudio(audioEl);
     if (screenshotsRef.current && video) {
       console.warn('cameraRef.current: %o', video);
       const width = video.videoWidth;
@@ -70,6 +78,7 @@ function Camera() {
   return (
     <Wrapper>
       <Video ref={cameraRef} autoPlay playsInline></Video>
+      <audio ref={audioRef}></audio>
       <Screenshot ref={screenshotsRef}></Screenshot>
       <button onClick={handleScreenshots}>截屏</button>
     </Wrapper>
