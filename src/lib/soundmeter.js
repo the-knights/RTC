@@ -24,15 +24,15 @@ export default class SoundMeter {
     const that = this;
     this.script.onaudioprocess = function (event) {
       var input = event.inputBuffer.getChannelData(0);
-      // var i;
+      var i;
       var sum = 0.0;
-      // var clipcount = 0;
-      // for (i = 0; i < input.length; ++i) {
-      //   sum += input[i] * input[i];
-      //   if (Math.abs(input[i]) > 0.99) {
-      //     clipcount += 1;
-      //   }
-      // }
+      var clipcount = 0;
+      for (i = 0; i < input.length; ++i) {
+        sum += input[i] * input[i];
+        if (Math.abs(input[i]) > 0.99) {
+          clipcount += 1;
+        }
+      }
       that.instant = Math.sqrt(sum / input.length);
       //that.slow = 0.95 * that.slow + 0.05 * that.instant;
       //that.clip = clipcount / input.length;

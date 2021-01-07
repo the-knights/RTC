@@ -9,62 +9,70 @@ function Camera() {
   const [localStream, setLocalStream] = useState<MediaStream>();
 
   useEffect(() => {
-    rtc.startAudioStream();
+    rtc.startVideoStream(cameraRef.current);
+    // rtc.startAudioStream();
 
     setTimeout(() => {
-      rtc.startRecord();
+      // rtc.getAudioVolume();
+      // rtc.startRecord();
+      rtc.startVideoRecord();
     }, 3000);
 
-    const constraints: MediaStreamConstraints = {
-      audio: false,
-      video: {
-        width: {
-          exact: 1280,
-        },
-        height: {
-          exact: 720,
-        },
-      },
-    };
+    // rtc.on('audioVolume', (volume) => {
+    //   console.log('volume', volume);
+    // });
 
-    //判断流对象是否为空
-    if (localStream) {
-      //迭代并停止所有轨道
-      localStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
+    // const constraints: MediaStreamConstraints = {
+    //   audio: false,
+    //   video: {
+    //     width: {
+    //       exact: 1280,
+    //     },
+    //     height: {
+    //       exact: 720,
+    //     },
+    //   },
+    // };
 
-    navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
+    // //判断流对象是否为空
+    // if (localStream) {
+    //   //迭代并停止所有轨道
+    //   localStream.getTracks().forEach((track) => {
+    //     track.stop();
+    //   });
+    // }
 
-    function handleError(error: DOMException) {
-      console.error('error: %o', error);
-      if (error.name === 'ConstraintNotSatisfiedError') {
-        const v = constraints.video;
-        //宽高尺寸错误
-        console.error(`宽:${v} 高:${v} 设备不支持`);
-      } else if (error.name === 'PermissionDeniedError') {
-        console.error('没有摄像头和麦克风使用权限,请点击允许按钮');
-      }
-      console.error(`getUserMedia 错误: ${error.name}`, error);
-    }
+    // navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
 
-    function handleSuccess(stream: MediaStream) {
-      const videoTracks = stream.getVideoTracks();
-      setLocalStream(stream);
-      localStream?.getTracks();
-      console.log(`使用的摄像头设备：${videoTracks[0].label}`);
-      if (cameraRef.current) {
-        cameraRef.current.srcObject = stream;
-      }
-    }
+    // function handleError(error: DOMException) {
+    //   console.error('error: %o', error);
+    //   if (error.name === 'ConstraintNotSatisfiedError') {
+    //     const v = constraints.video;
+    //     //宽高尺寸错误
+    //     console.error(`宽:${v} 高:${v} 设备不支持`);
+    //   } else if (error.name === 'PermissionDeniedError') {
+    //     console.error('没有摄像头和麦克风使用权限,请点击允许按钮');
+    //   }
+    //   console.error(`getUserMedia 错误: ${error.name}`, error);
+    // }
+
+    // function handleSuccess(stream: MediaStream) {
+    //   const videoTracks = stream.getVideoTracks();
+    //   setLocalStream(stream);
+    //   localStream?.getTracks();
+    //   console.log(`使用的摄像头设备：${videoTracks[0].label}`);
+    //   if (cameraRef.current) {
+    //     cameraRef.current.srcObject = stream;
+    //   }
+    // }
   }, []);
 
   function handleScreenshots() {
     const video = cameraRef.current;
     const audioEl = audioRef.current;
     rtc.stopRecord();
-    rtc.playRecordAudio(audioEl);
+    rtc.downloadFileHandler();
+    // rtc.playRecordAudio(audioEl);
     if (screenshotsRef.current && video) {
       console.warn('cameraRef.current: %o', video);
       const width = video.videoWidth;

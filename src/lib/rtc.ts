@@ -2,10 +2,7 @@ import SoundMeter from './soundmeter';
 import events from 'events';
 
 class RTC extends events.EventEmitter {
-  constructor() {
-    super();
-    this.init();
-  }
+  audioContext: AudioContext;
 
   //QVGA 320*240
   qvgaConstraints = {
@@ -29,12 +26,17 @@ class RTC extends events.EventEmitter {
 
   deviceInfos: MediaDeviceInfo[] | undefined;
   cameraDevicesList = null;
-  audioContext = new AudioContext();
   stream?: MediaStream;
   audioVolumeTimer?: number = 0; // 音量回调定时器
   currentResolution?: MediaStreamConstraints;
   mediaRecorder?: MediaRecorder;
   recordedBlobs: Blob[] = [];
+
+  constructor() {
+    super();
+    this.init();
+    this.audioContext = new AudioContext();
+  }
 
   // TODO: 初始化 rtc 基本信息（设备列表）
   async init() {
@@ -72,6 +74,22 @@ class RTC extends events.EventEmitter {
     return speakerDeviceInfos;
   }
 
+  async startVideoStream(view: HTMLVideoElement | null) {
+    const constraints: MediaStreamConstraints = {
+      audio: false,
+      video: this.hdConstraints.video,
+    };
+
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (view) {
+        view.srcObject = this.stream;
+      }
+    } catch (error) {
+      this._handleAudioError(error);
+    }
+  }
+
   async startAudioStream() {
     const constraints: MediaStreamConstraints = {
       audio: true,
@@ -98,8 +116,8 @@ class RTC extends events.EventEmitter {
       }
       // 开始实时读取音量值
       this.audioVolumeTimer = window.setInterval(() => {
-        console.warn('soundMeter.instant: %o', soundMeter.instant * 348 + 1);
-        this.emit('audioVolume', 11);
+        const volume = soundMeter.instant * 348 + 1;
+        this.emit('audioVolume', volume);
       }, 200);
     });
     console.warn('getAudioVolume: %o');
@@ -202,11 +220,12 @@ class RTC extends events.EventEmitter {
         this.mediaRecorder.onstop = (event) => {
           console.log('Recorder stopped: ', event);
           console.log('Recorded Blobs: ', this.recordedBlobs);
+          this.emit('recorder-stop');
         };
 
         //当数据有效时触发的事件,可以把数据存储到缓存区里
         this.mediaRecorder.ondataavailable = (event) => {
-          console.log('handleDataAvailable', event);
+          // console.log('handleDataAvailable', event);
           //判断是否有数据
           if (event.data && event.data.size > 0) {
             //将数据记录起来
@@ -224,12 +243,72 @@ class RTC extends events.EventEmitter {
     }
   }
 
-  //停止录制
-  stopRecord() {
-    this.mediaRecorder?.stop();
+  startVideoRecord() {
+    const options = this._isMimeTypeSupported();
+
+    try {
+      if (this.stream) {
+        //创建MediaRecorder对象,准备录制
+        this.mediaRecorder = new MediaRecorder(this.stream, options);
+        this.recordedBlobs = [];
+
+        //录制停止事件监听
+        this.mediaRecorder.onstop = (event) => {
+          console.log('录制停止: ', event);
+          console.log('录制的Blobs数据为: ', this.recordedBlobs);
+          this.emit('recorder-stop');
+        };
+        this.mediaRecorder.ondataavailable = this.handleDataAvailable.bind(this);
+
+        // 开始录制并指定录制时间为10秒
+        this.mediaRecorder.start(10);
+        console.log('MediaRecorder started', this.mediaRecorder);
+      }
+    } catch (e) {
+      console.error('创建MediaRecorder错误:', e);
+      return;
+    }
   }
 
-  //播放录制数据
+  handleDataAvailable(event: BlobEvent) {
+    console.log('handleDataAvailable', event);
+    //判断是否有数据
+    if (event.data && event.data.size > 0) {
+      console.warn('event.data: %o', event.data);
+      //将数据记录起来
+      this.recordedBlobs?.push(event.data);
+      console.warn('this.recordedBlobs: %o', this.recordedBlobs);
+    }
+  }
+
+  //停止录制
+  stopRecord() {
+    console.warn('this: %o', this.mediaRecorder);
+    if (this.mediaRecorder?.state === 'recording') {
+      this.mediaRecorder?.stop();
+    }
+  }
+
+  // 点击下载录制文件
+  downloadFileHandler = () => {
+    // 生成 blob 文件,类型为 video/webm
+    const blob = new Blob(this.recordedBlobs, { type: 'video/webm' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    // 指定下载文件及类型
+    a.download = 'test.webm';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      // URL.revokeObjectURL() 方法会释放一个通过 URL.createObjectURL() 创建的对象URL.
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  // 播放录制数据
   playRecordAudio(el: HTMLAudioElement | null) {
     if (el) {
       // 生成 blob 文件,类型为 audio/webm
@@ -261,6 +340,24 @@ class RTC extends events.EventEmitter {
       console.error('没有摄像头和麦克风使用权限,请点击允许按钮');
     }
     console.error('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
+  }
+
+  _isMimeTypeSupported() {
+    //指定 mimeType 类型,依次判断是否支持vp9 vp8编码格式
+    let options = { mimeType: 'video/webm;codecs=vp9' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      console.error('video/webm;codecs=vp9不支持');
+      options = { mimeType: 'video/webm;codecs=vp8' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.error('video/webm;codecs=vp8不支持');
+        options = { mimeType: 'video/webm' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.error(`video/webm不支持`);
+          options = { mimeType: '' };
+        }
+      }
+    }
+    return options;
   }
 }
 
